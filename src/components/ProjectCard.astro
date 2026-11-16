@@ -1,0 +1,87 @@
+---
+/**
+ * A card for one project, used on the home page and the /work grid.
+ */
+import type { CollectionEntry } from 'astro:content';
+import { Image } from 'astro:assets';
+import { dateRange } from '../lib/content';
+
+interface Props {
+  project: CollectionEntry<'projects'>;
+  /** Heading level for the title, so the page's heading outline stays in order. */
+  headingLevel?: 'h2' | 'h3';
+}
+
+const { project, headingLevel = 'h3' } = Astro.props;
+const Heading = headingLevel;
+const { title, role, org, start, end, summary, tags, cover } = project.data;
+---
+
+<article class="card" data-tags={tags.join(' ')}>
+  {
+    cover && (
+      <Image
+        class="card__cover"
+        src={cover}
+        alt=""
+        width={800}
+        widths={[400, 800]}
+        sizes="(min-width: 60em) 24rem, 100vw"
+        loading="lazy"
+      />
+    )
+  }
+  <p class="meta">{role} · {dateRange(start, end)}</p>
+  <Heading class="card__title"><a href={`/work/${project.id}`}>{title}</a></Heading>
+  <p class="meta card__org">{org}</p>
+  <p class="card__summary">{summary}</p>
+</article>
+
+<style>
+  .card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: var(--space-5);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: var(--color-bg-raised);
+  }
+
+  .card__cover {
+    margin-bottom: var(--space-2);
+    border-radius: var(--radius);
+  }
+
+  .card__title {
+    font-size: var(--text-md);
+  }
+
+  /* The whole card is clickable through the title link's padding box. */
+  .card__title a {
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  .card__title a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  .card {
+    position: relative;
+  }
+
+  .card:hover {
+    border-color: var(--color-text-muted);
+  }
+
+  .card:hover .card__title a {
+    color: var(--color-accent);
+  }
+
+  .card__summary {
+    font-size: var(--text-sm);
+  }
+</style>

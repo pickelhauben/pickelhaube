@@ -1,0 +1,122 @@
+---
+/**
+ * Home page: who Lawrence is in under a minute, what he is focused on,
+ * three featured projects and the latest essays.
+ */
+import { getEntry, render } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import WritingList from '../components/WritingList.astro';
+import { site } from '../site';
+import { getProjects, getPublishedWriting, formatDate } from '../lib/content';
+
+// TODO(Lawrence): approve or rewrite the identity line and the short story.
+const identityLine =
+  'Economics and photography student at the University of Arizona. I build institutions that help people grow, and I’m learning how to make them last.';
+
+const story = [
+  'I’m a first-generation student who grew up between China and the United States. I arrived in Arizona closed off, and learned to lead by starting conversations first and joining everything I could.',
+  'Since then I’ve helped build a student association, co-founded a startup, and joined a global community of young leaders.',
+  'Now I’m asking a bigger question: how do we build organizations that help people see the systems they live in?',
+];
+
+const featured = (await getProjects()).filter((p) => p.data.featured).slice(0, 3);
+const essays = (await getPublishedWriting()).slice(0, 3);
+
+// "Currently" is pulled from the same Markdown file that powers /now.
+const now = await getEntry('pages', 'now');
+const { Content: NowContent } = now ? await render(now) : { Content: null };
+---
+
+<Base>
+  <section class="hero prose-width">
+    <h1>{site.name}</h1>
+    <p class="hero__identity">{identityLine}</p>
+  </section>
+
+  <section class="story prose-width" aria-labelledby="story-heading">
+    <h2 id="story-heading" class="visually-hidden">About me</h2>
+    {story.map((paragraph) => <p>{paragraph}</p>)}
+    <p><a href="/about">More about me</a></p>
+  </section>
+
+  {
+    now && NowContent && (
+      <section class="now prose-width" aria-labelledby="now-heading">
+        <h2 id="now-heading">Currently</h2>
+        <p class="meta">Updated {formatDate(now.data.updated)}</p>
+        <div class="now__body">
+          <NowContent />
+        </div>
+        <p>
+          <a href="/now">What I’m doing now</a>
+        </p>
+      </section>
+    )
+  }
+
+  <section class="featured" aria-labelledby="featured-heading">
+    <h2 id="featured-heading">Selected work</h2>
+    <div class="card-grid">
+      {featured.map((project) => <ProjectCard project={project} />)}
+    </div>
+    <p><a href="/work">All work</a></p>
+  </section>
+
+  {
+    essays.length > 0 && (
+      <section class="latest-writing" aria-labelledby="writing-heading">
+        <h2 id="writing-heading">Writing</h2>
+        <WritingList essays={essays} />
+        <p>
+          <a href="/writing">All writing</a>
+        </p>
+      </section>
+    )
+  }
+</Base>
+
+<style>
+  section + section {
+    margin-top: var(--space-8);
+  }
+
+  h2 {
+    margin-bottom: var(--space-4);
+  }
+
+  .hero__identity {
+    margin-top: var(--space-4);
+    font-family: var(--font-serif);
+    font-size: var(--text-lg);
+    line-height: 1.4;
+    text-wrap: pretty;
+  }
+
+  .story p + p {
+    margin-top: var(--space-4);
+  }
+
+  .now__body {
+    margin-block: var(--space-3) var(--space-4);
+  }
+
+  .now__body :global(ul) {
+    padding-left: 1.2em;
+  }
+
+  .now__body :global(li + li) {
+    margin-top: var(--space-1);
+  }
+
+  .now__body :global(ul + p) {
+    margin-top: var(--space-3);
+  }
+
+  .card-grid {
+    display: grid;
+    gap: var(--space-4);
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+    margin-bottom: var(--space-4);
+  }
+</style>

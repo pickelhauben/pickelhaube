@@ -1,0 +1,104 @@
+---
+/**
+ * A row of filter chips. Clicking a chip hides every element inside
+ * `target` whose data attribute does not include that tag.
+ *
+ * Without JavaScript all chips are inert and every item stays visible,
+ * so the page still works. With JavaScript, the chosen filter is also
+ * written to the URL hash (e.g. /work#leadership) so it can be shared.
+ */
+interface Props {
+  /** The tags to offer, in display order. */
+  tags: string[];
+  /** CSS selector of the element that contains the filterable items. */
+  target: string;
+  /** Data attribute on each item holding its space-separated tags. */
+  attribute: string;
+  /** Accessible label for the group, e.g. "Filter by topic". */
+  label: string;
+}
+
+const { tags, target, attribute, label } = Astro.props;
+---
+
+<div
+  class="tag-filter"
+  role="group"
+  aria-label={label}
+  data-target={target}
+  data-attribute={attribute}
+>
+  <button type="button" class="chip" data-tag="" aria-pressed="true">All</button>
+  {
+    tags.map((tag) => (
+      <button type="button" class="chip" data-tag={tag} aria-pressed="false">
+        {tag}
+      </button>
+    ))
+  }
+</div>
+
+<script>
+  // Progressive enhancement: wire up every filter group on the page.
+  for (const group of document.querySelectorAll<HTMLElement>('.tag-filter')) {
+    const container = document.querySelector<HTMLElement>(group.dataset.target ?? '');
+    const attribute = group.dataset.attribute ?? '';
+    if (!container) continue;
+
+    const chips = Array.from(group.querySelectorAll<HTMLButtonElement>('.chip'));
+    const items = Array.from(container.querySelectorAll<HTMLElement>(`[${attribute}]`));
+
+    function apply(tag: string) {
+      for (const chip of chips) {
+        chip.setAttribute('aria-pressed', String(chip.dataset.tag === tag));
+      }
+      for (const item of items) {
+        const itemTags = (item.getAttribute(attribute) ?? '').split(' ');
+        item.hidden = tag !== '' && !itemTags.includes(tag);
+      }
+    }
+
+    for (const chip of chips) {
+      chip.addEventListener('click', () => {
+        const tag = chip.dataset.tag ?? '';
+        apply(tag);
+        // Keep the choice in the URL without adding history entries.
+        history.replaceState(null, '', tag ? `#${encodeURIComponent(tag)}` : location.pathname);
+      });
+    }
+
+    // Restore a filter from the URL on load, if it matches a chip.
+    const fromHash = decodeURIComponent(location.hash.slice(1));
+    if (fromHash && chips.some((chip) => chip.dataset.tag === fromHash)) apply(fromHash);
+  }
+</script>
+
+<style>
+  .tag-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-bottom: var(--space-5);
+  }
+
+  .chip {
+    padding: var(--space-1) var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: transparent;
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+    cursor: pointer;
+  }
+
+  .chip:hover {
+    border-color: var(--color-text-muted);
+    color: var(--color-text);
+  }
+
+  .chip[aria-pressed='true'] {
+    background: var(--color-text);
+    border-color: var(--color-text);
+    color: var(--color-bg);
+  }
+</style>

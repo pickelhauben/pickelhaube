@@ -1,0 +1,81 @@
+---
+/**
+ * /photography: one cover per series, linking to the series page.
+ */
+import { Image } from 'astro:assets';
+import Base from '../../layouts/Base.astro';
+import { getPhotoSeries } from '../../lib/content';
+
+const series = await getPhotoSeries();
+---
+
+<Base title="Photography" description="Photo series by Lawrence Zhang.">
+  <header class="page-header">
+    <h1>Photography</h1>
+    <p>Series, each with a short statement. Click any photo to view it large.</p>
+  </header>
+
+  <ul class="series-grid">
+    {
+      series.map((s) => {
+        const cover = s.data.photos[0];
+        return (
+          <li class="series-card">
+            <a href={`/photography/${s.id}`}>
+              {cover && (
+                <Image
+                  src={cover.src}
+                  alt={cover.alt}
+                  width={900}
+                  widths={[450, 900, 1350]}
+                  sizes="(min-width: 60em) 36rem, 100vw"
+                  format="webp"
+                  loading="lazy"
+                />
+              )}
+              <span class="series-card__title">{s.data.title}</span>
+              <span class="meta">
+                {s.data.year} · {s.data.photos.length} photos
+              </span>
+            </a>
+          </li>
+        );
+      })
+    }
+  </ul>
+</Base>
+
+<style>
+  .series-grid {
+    display: grid;
+    gap: var(--space-6) var(--space-4);
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+    padding: 0;
+    list-style: none;
+  }
+
+  .series-card a {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  .series-card img {
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    object-fit: cover;
+    border-radius: var(--radius);
+  }
+
+  .series-card__title {
+    margin-top: var(--space-1);
+    font-family: var(--font-serif);
+    font-size: var(--text-md);
+  }
+
+  .series-card a:hover .series-card__title {
+    color: var(--color-accent);
+  }
+</style>

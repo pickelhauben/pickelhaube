@@ -1,0 +1,120 @@
+---
+/**
+ * /photography/<series>: the statement and every photo, full width,
+ * each opening in the lightbox.
+ */
+import { Picture, getImage } from 'astro:assets';
+import Base from '../../layouts/Base.astro';
+import Lightbox from '../../components/Lightbox.astro';
+import { getPhotoSeries } from '../../lib/content';
+
+export async function getStaticPaths() {
+  const series = await getPhotoSeries();
+  return series.map((s) => ({ params: { series: s.id }, props: { series: s } }));
+}
+
+const { series } = Astro.props;
+const { title, year, statement, photos } = series.data;
+
+// One large WebP per photo for the lightbox. Built once at build time.
+const lightboxPhotos = await Promise.all(
+  photos.map(async (photo) => {
+    const large = await getImage({ src: photo.src, width: 2000, format: 'webp' });
+    return { src: large.src, alt: photo.alt, caption: photo.caption };
+  }),
+);
+
+const cover = photos[0];
+const ogImage = cover
+  ? (await getImage({ src: cover.src, width: 1200, format: 'jpeg' })).src
+  : undefined;
+---
+
+<Base title={title} description={statement} image={ogImage}>
+  <header class="series-header prose-width">
+    <p class="meta"><a href="/photography">Photography</a> · {year}</p>
+    <h1>{title}</h1>
+    <p class="series-header__statement">{statement}</p>
+  </header>
+
+  <ol class="photos" data-lightbox-gallery>
+    {
+      photos.map((photo, index) => (
+        <li class="photo">
+          <button
+            type="button"
+            class="photo__button"
+            data-lightbox-index={index}
+            aria-label={`View photo ${index + 1} of ${photos.length} larger`}
+          >
+            <Picture
+              src={photo.src}
+              alt={photo.alt}
+              widths={[480, 800, 1200, 1600, 2400]}
+              sizes="100vw"
+              formats={['avif', 'webp']}
+              loading={index === 0 ? 'eager' : 'lazy'}
+              fetchpriority={index === 0 ? 'high' : 'auto'}
+              decoding="async"
+            />
+          </button>
+          {photo.caption && <p class="meta photo__caption">{photo.caption}</p>}
+        </li>
+      ))
+    }
+  </ol>
+
+  <Lightbox photos={lightboxPhotos} />
+</Base>
+
+<style>
+  .series-header {
+    margin-bottom: var(--space-7);
+  }
+
+  .series-header h1 {
+    margin-top: var(--space-3);
+  }
+
+  .series-header__statement {
+    margin-top: var(--space-4);
+    font-family: var(--font-serif);
+    font-size: var(--text-md);
+  }
+
+  /* Full-bleed: break out of the page container to the edges of the screen. */
+  .photos {
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-7);
+  }
+
+  .photo {
+    max-width: none;
+  }
+
+  .photo__button {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: zoom-in;
+  }
+
+  .photo__button img {
+    width: 100%;
+    max-height: 90dvh;
+    object-fit: contain;
+  }
+
+  .photo__caption {
+    margin-top: var(--space-2);
+    padding-inline: var(--gutter);
+    text-align: center;
+  }
+</style>

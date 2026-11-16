@@ -1,0 +1,38 @@
+---
+/**
+ * /work: every project as a card, sorted by `order`, with tag filters.
+ */
+import Base from '../../layouts/Base.astro';
+import ProjectCard from '../../components/ProjectCard.astro';
+import TagFilter from '../../components/TagFilter.astro';
+import { getProjects } from '../../lib/content';
+
+const projects = await getProjects();
+
+// Unique tags across all projects, in order of first appearance.
+const tags = [...new Set(projects.flatMap((p) => p.data.tags))];
+---
+
+<Base
+  title="Work"
+  description="Projects and roles: what Lawrence Zhang has built, not just titles held."
+>
+  <header class="page-header">
+    <h1>Work</h1>
+    <p>Things I have built or helped build, and what came of them.</p>
+  </header>
+
+  <TagFilter tags={tags} target="#work-grid" attribute="data-tags" label="Filter by tag" />
+
+  <div id="work-grid" class="card-grid">
+    {projects.map((project) => <ProjectCard project={project} headingLevel="h2" />)}
+  </div>
+</Base>
+
+<style>
+  .card-grid {
+    display: grid;
+    gap: var(--space-4);
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+  }
+</style>

@@ -1,0 +1,42 @@
+---
+/**
+ * Renders one hand-edited Markdown page from src/content/pages/
+ * (about, now, resume) with a title, an "updated" date and the body.
+ * Extra content can be passed in the default slot; it appears between
+ * the header and the body.
+ */
+import { getEntry, render } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import { formatDate } from '../lib/content';
+
+interface Props {
+  /** File name without extension, e.g. "now" for src/content/pages/now.md. */
+  page: string;
+  description: string;
+  /** Optional line shown under the title. */
+  intro?: string;
+}
+
+const { page, description, intro } = Astro.props;
+const entry = await getEntry('pages', page);
+if (!entry) throw new Error(`Missing src/content/pages/${page}.md`);
+const { Content } = await render(entry);
+---
+
+<Base title={entry.data.title} description={description}>
+  <article>
+    <header class="page-header prose-width">
+      <h1>{entry.data.title}</h1>
+      {intro && <p>{intro}</p>}
+      <p class="meta">
+        Updated <time datetime={entry.data.updated.toISOString().slice(0, 10)}
+          >{formatDate(entry.data.updated)}</time
+        >
+      </p>
+    </header>
+    <slot />
+    <div class="prose">
+      <Content />
+    </div>
+  </article>
+</Base>

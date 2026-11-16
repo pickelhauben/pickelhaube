@@ -1,0 +1,40 @@
+---
+/**
+ * /writing: published essays and notes, newest first, with topic filters.
+ */
+import Base from '../../layouts/Base.astro';
+import WritingList from '../../components/WritingList.astro';
+import TagFilter from '../../components/TagFilter.astro';
+import { getPublishedWriting } from '../../lib/content';
+
+const essays = await getPublishedWriting();
+const topics = [...new Set(essays.flatMap((e) => e.data.topics))];
+---
+
+<Base title="Writing" description="Essays and notes by Lawrence Zhang.">
+  <header class="page-header">
+    <h1>Writing</h1>
+    <p>Essays and notes. Published here first, then shared on LinkedIn.</p>
+  </header>
+
+  {
+    essays.length > 0 ? (
+      <>
+        <TagFilter
+          tags={topics}
+          target="#writing-list"
+          attribute="data-topics"
+          label="Filter by topic"
+        />
+        <div id="writing-list">
+          <WritingList essays={essays} headingLevel="h2" />
+        </div>
+      </>
+    ) : (
+      <p>
+        Nothing published yet. Subscribe to the <a href="/rss.xml">RSS feed</a> to be the first to
+        know.
+      </p>
+    )
+  }
+</Base>

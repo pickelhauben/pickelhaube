@@ -1,0 +1,33 @@
+---
+/**
+ * /resume: web version from src/content/pages/resume.md, plus a PDF download
+ * when public/resume.pdf exists.
+ */
+import { existsSync } from 'node:fs';
+import path from 'node:path';
+import MarkdownPage from '../components/MarkdownPage.astro';
+
+// Only link to the PDF if the file is really there, so the link never 404s.
+// TODO(Lawrence): supply public/resume.pdf with no phone number.
+const hasPdf = existsSync(path.join(process.cwd(), 'public/resume.pdf'));
+---
+
+<MarkdownPage page="resume" description="Lawrence Zhang's resume.">
+  <p class="download">
+    {
+      hasPdf ? (
+        <a href="/resume.pdf" download>
+          Download as PDF
+        </a>
+      ) : (
+        '[[TODO: add public/resume.pdf (no phone number) to enable the PDF download]]'
+      )
+    }
+  </p>
+</MarkdownPage>
+
+<style>
+  .download {
+    margin-bottom: var(--space-6);
+  }
+</style>
