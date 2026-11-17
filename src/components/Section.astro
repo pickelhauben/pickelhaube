@@ -1,0 +1,74 @@
+---
+/**
+ * A page section with its label in the left "rail" and its content on the
+ * right, separated from the section above by a hairline.
+ *
+ *   <Section label="Selected work" id="work">
+ *     ...content...
+ *     <Fragment slot="aside">optional extra text under the label</Fragment>
+ *   </Section>
+ */
+interface Props {
+  /** Short name shown in the rail, e.g. "Selected work". */
+  label: string;
+  /** Unique id, used to connect the label to the section for screen readers. */
+  id: string;
+}
+
+const { label, id } = Astro.props;
+const headingId = `${id}-heading`;
+---
+
+<section class="section rail" aria-labelledby={headingId}>
+  <div class="section__rail">
+    <h2 id={headingId} class="label">{label}</h2>
+    <slot name="aside" />
+  </div>
+  <div class="section__body">
+    <slot />
+  </div>
+</section>
+
+<style>
+  .section {
+    margin-top: var(--space-section);
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .section:first-child {
+    margin-top: 0;
+  }
+
+  .section__rail {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  /* Keep the label in view while a long section scrolls past. */
+  @media (min-width: 56em) {
+    .section__rail {
+      position: sticky;
+      top: var(--space-5);
+      align-self: start;
+    }
+  }
+
+  .section__body {
+    min-width: 0; /* lets wide children shrink inside the grid */
+  }
+
+  /*
+    When a section starts with an index list, the section's own hairline
+    already sits above it, so the list drops its top line and padding. That
+    keeps the first title level with the label in the rail.
+  */
+  .section__body > :global(.index:first-child) {
+    border-top: 0;
+  }
+
+  .section__body > :global(.index:first-child > .index__row:first-child) {
+    padding-top: 0;
+  }
+</style>

@@ -1,0 +1,25 @@
+---
+/**
+ * Wraps rendered Markdown. Use it around a <Content /> component:
+ *
+ *   <Prose><Content /></Prose>
+ *
+ * It applies the shared `.prose` text styles and marks up any
+ * [[TODO: ...]] placeholder so it shows as a styled note.
+ */
+import { wrapTodoInHtml } from '../lib/todo';
+
+interface Props {
+  /** Extra classes, e.g. "prose--essay" or "prose--rail". */
+  class?: string;
+  /** Leave out the `.prose` styles (for content styled by the page itself). */
+  bare?: boolean;
+}
+
+const { class: className, bare = false } = Astro.props;
+
+// Render the slot (the Markdown) to an HTML string, then mark up placeholders.
+const html = wrapTodoInHtml(await Astro.slots.render('default'));
+---
+
+<div class:list={[!bare && 'prose', className]} set:html={html} />

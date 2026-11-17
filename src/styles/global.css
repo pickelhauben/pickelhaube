@@ -1,5 +1,6 @@
 /*
-  Global styles: a small reset, base typography and a few shared utilities.
+  Global styles: a small reset, base typography, the page grid and a few
+  shared pieces (labels, links, rendered Markdown, TODO placeholders).
   Component-specific styles live in each .astro file.
 */
 @import './tokens.css';
@@ -29,6 +30,7 @@ body {
   font-size: var(--text-base);
   line-height: var(--leading-body);
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
   display: flex;
   flex-direction: column;
 }
@@ -50,40 +52,52 @@ textarea {
   color: inherit;
 }
 
+ul[class],
+ol[class] {
+  padding: 0;
+  list-style: none;
+}
+
 /* --- Typography ------------------------------------------------------- */
 h1,
 h2,
 h3,
 h4 {
   font-family: var(--font-serif);
-  font-weight: 500;
+  font-weight: 400;
   line-height: var(--leading-tight);
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
   text-wrap: balance;
 }
 
 h1 {
   font-size: var(--text-2xl);
+  font-weight: 350;
+  letter-spacing: -0.025em;
 }
 h2 {
   font-size: var(--text-xl);
 }
 h3 {
   font-size: var(--text-lg);
+  line-height: var(--leading-snug);
 }
 h4 {
   font-size: var(--text-md);
+  line-height: var(--leading-snug);
 }
 
 p,
 li {
   max-width: var(--measure);
+  text-wrap: pretty;
 }
 
 a {
   color: var(--color-accent);
   text-decoration-thickness: 1px;
-  text-underline-offset: 0.15em;
+  text-underline-offset: 0.18em;
+  transition: color var(--duration) var(--ease);
 }
 
 a:hover {
@@ -101,7 +115,93 @@ a:hover {
   border-radius: 2px;
 }
 
-/* --- Layout helpers --------------------------------------------------- */
+/* --- Shared text styles ------------------------------------------------ */
+
+/* Small uppercase label: section names, breadcrumbs, table-like headings. */
+.label {
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.label a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.label a:hover {
+  color: var(--color-text);
+}
+
+/* Small, muted text used for dates, roles and captions. */
+.meta {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+/* Large serif introduction under a title. */
+.lede {
+  font-family: var(--font-serif);
+  font-size: var(--text-md);
+  line-height: 1.45;
+  max-width: 34em;
+}
+
+/* A text link with an arrow that nudges forward on hover. */
+.arrow-link {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4em;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-text);
+  text-decoration: none;
+  border-bottom: 1px solid var(--color-border-strong);
+  padding-bottom: 0.15em;
+  transition:
+    color var(--duration) var(--ease),
+    border-color var(--duration) var(--ease);
+}
+
+.arrow-link::after {
+  content: '→';
+  transition: transform var(--duration) var(--ease);
+}
+
+.arrow-link:hover {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.arrow-link:hover::after {
+  transform: translateX(0.2em);
+}
+
+/*
+  Placeholder text waiting for real content, written as [[TODO: ...]].
+  Shown as a quiet dashed note so it is easy to spot but does not look broken.
+*/
+.todo {
+  font-family: var(--font-mono);
+  font-size: 0.78em;
+  font-style: normal;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+  padding: 0.12em 0.5em;
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone; /* keep the border on every line when it wraps */
+  overflow-wrap: anywhere;
+}
+
+/* --- Layout ----------------------------------------------------------- */
 .container {
   width: 100%;
   max-width: var(--wide-width);
@@ -109,13 +209,29 @@ a:hover {
   padding-inline: var(--gutter);
 }
 
-.prose-width {
-  max-width: var(--content-width);
-}
-
 main {
   flex: 1;
-  padding-block: var(--space-7) var(--space-9);
+  padding-block: clamp(2.5rem, 1.5rem + 4vw, 5rem) var(--space-section);
+}
+
+/*
+  The "rail" grid: a narrow label column on the left and the content on the
+  right. On phones the two stack. Used by sections on every page so that
+  labels and content line up down the whole site.
+*/
+.rail {
+  display: grid;
+  gap: var(--space-4) var(--space-6);
+}
+
+@media (min-width: 56em) {
+  .rail {
+    grid-template-columns: var(--rail) minmax(0, 1fr);
+  }
+}
+
+.prose-width {
+  max-width: var(--content-width);
 }
 
 /* Hide visually but keep for screen readers. */
@@ -134,6 +250,7 @@ main {
 /* Skip link for keyboard users; appears on focus. */
 .skip-link {
   position: absolute;
+  z-index: 10;
   top: var(--space-2);
   left: var(--space-2);
   padding: var(--space-2) var(--space-3);
@@ -143,26 +260,6 @@ main {
 }
 .skip-link:focus {
   transform: none;
-}
-
-/* Small, muted label text used for dates, roles and tags. */
-.meta {
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
-}
-
-/* Respect users who ask for less motion. */
-@media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
 }
 
 /* --- Rendered Markdown ------------------------------------------------ */
@@ -178,11 +275,16 @@ main {
 .prose h2 {
   margin-top: var(--space-7);
   font-size: var(--text-lg);
+  line-height: var(--leading-snug);
 }
 
 .prose h3 {
   margin-top: var(--space-6);
   font-size: var(--text-md);
+}
+
+.prose > :first-child {
+  margin-top: 0;
 }
 
 .prose ul,
@@ -194,15 +296,21 @@ main {
   margin-top: var(--space-2);
 }
 
-.prose blockquote {
-  padding-left: var(--space-4);
-  border-left: 3px solid var(--color-border);
+.prose li::marker {
   color: var(--color-text-muted);
+}
+
+.prose blockquote {
+  padding-left: var(--space-5);
+  border-left: 2px solid var(--color-accent);
+  font-family: var(--font-serif);
+  font-size: var(--text-md);
+  font-style: italic;
 }
 
 .prose code {
   font-family: var(--font-mono);
-  font-size: 0.9em;
+  font-size: 0.88em;
 }
 
 .prose pre {
@@ -215,6 +323,7 @@ main {
 .prose hr {
   border: 0;
   border-top: 1px solid var(--color-border);
+  margin-block: var(--space-7);
 }
 
 .prose img {
@@ -225,14 +334,89 @@ main {
 .prose--essay {
   font-family: var(--font-serif);
   font-size: var(--text-md);
+  line-height: 1.6;
 }
 
-/* Page header shared by section index pages. */
-.page-header {
-  margin-bottom: var(--space-6);
+/*
+  "Rail" prose: each ## heading in the Markdown moves into the left label
+  column, and the text under it sits to the right. CSS grid does this without
+  any extra markup: headings are pinned to column 1 and everything else to
+  column 2, so a heading and the first paragraph after it share a row.
+*/
+.prose--rail {
+  max-width: none;
 }
 
-.page-header p {
-  margin-top: var(--space-3);
+.prose--rail > h2 {
+  margin-top: var(--space-7);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--color-border);
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   color: var(--color-text-muted);
+}
+
+.prose--rail > h2:first-child {
+  margin-top: 0;
+}
+
+@media (min-width: 56em) {
+  .prose--rail {
+    position: relative; /* anchor for the hairlines below */
+    display: grid;
+    grid-template-columns: var(--rail) minmax(0, var(--content-width));
+    column-gap: var(--space-6);
+  }
+
+  .prose--rail > * {
+    grid-column: 2;
+  }
+
+  .prose--rail > h2 {
+    grid-column: 1;
+    border-top: 0;
+  }
+
+  /* The element right after a heading shares its row, so it gets the same offset. */
+  .prose--rail > h2 + * {
+    margin-top: var(--space-7);
+    padding-top: var(--space-5);
+  }
+
+  .prose--rail > h2:first-child + * {
+    margin-top: 0;
+  }
+
+  /*
+    The hairline above each heading. It is positioned against the whole
+    .prose--rail box (left: 0; right: 0) so it runs across both columns,
+    and lifted by the heading's padding so it sits above the text.
+  */
+  .prose--rail > h2::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--color-border);
+    transform: translateY(calc(-1 * var(--space-5)));
+  }
+}
+
+/* Respect users who ask for less motion. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

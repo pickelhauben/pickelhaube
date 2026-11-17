@@ -1,40 +1,61 @@
 ---
 /**
- * Site footer: outside links (LinkedIn, GitHub, email) and the two
- * quieter pages that do not belong in the main navigation.
+ * Site footer: a short sign-off, the site's pages, and outside links.
  */
-import { site, hasEmail } from '../site';
+import { site, hasEmail, navLinks } from '../site';
 
 const year = new Date().getFullYear();
 ---
 
 <footer class="site-footer">
   <div class="container site-footer__inner">
-    <ul class="site-footer__links">
-      {
-        site.linkedin && (
-          <li>
-            <a href={site.linkedin} rel="me">
-              LinkedIn
-            </a>
-          </li>
-        )
-      }
-      {
-        site.github && (
-          <li>
-            <a href={site.github} rel="me">
-              GitHub
-            </a>
-          </li>
-        )
-      }
-      {/* Until a real address is set, "Email" points at the contact page. */}
-      <li><a href={hasEmail ? `mailto:${site.email}` : '/contact'}>Email</a></li>
-      <li><a href="/now">Now</a></li>
-      <li><a href="/resume">Resume</a></li>
-      <li><a href="/rss.xml">RSS</a></li>
-    </ul>
+    <div class="site-footer__about">
+      <p class="site-footer__name">{site.name}</p>
+      <p class="meta">Economics and photography student at the University of Arizona.</p>
+    </div>
+
+    <nav class="site-footer__col" aria-label="Footer">
+      <h2 class="label">Site</h2>
+      <ul>
+        {
+          navLinks.map((link) => (
+            <li>
+              <a href={link.href}>{link.label}</a>
+            </li>
+          ))
+        }
+        <li><a href="/now">Now</a></li>
+        <li><a href="/resume">Resume</a></li>
+      </ul>
+    </nav>
+
+    <div class="site-footer__col">
+      <h2 class="label">Elsewhere</h2>
+      <ul>
+        {/* Until a real address is set, "Email" points at the contact page. */}
+        <li><a href={hasEmail ? `mailto:${site.email}` : '/contact'}>Email</a></li>
+        {
+          site.linkedin && (
+            <li>
+              <a href={site.linkedin} rel="me">
+                LinkedIn
+              </a>
+            </li>
+          )
+        }
+        {
+          site.github && (
+            <li>
+              <a href={site.github} rel="me">
+                GitHub
+              </a>
+            </li>
+          )
+        }
+        <li><a href="/rss.xml">RSS feed</a></li>
+      </ul>
+    </div>
+
     <p class="site-footer__copy meta">&copy; {year} {site.name}</p>
   </div>
 </footer>
@@ -42,30 +63,61 @@ const year = new Date().getFullYear();
 <style>
   .site-footer {
     border-top: 1px solid var(--color-border);
-    padding-block: var(--space-6);
+    padding-block: var(--space-7) var(--space-6);
     font-size: var(--text-sm);
   }
 
   .site-footer__inner {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    gap: var(--space-3) var(--space-5);
+    display: grid;
+    gap: var(--space-6);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .site-footer__links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2) var(--space-4);
-    list-style: none;
+  .site-footer__about {
+    grid-column: 1 / -1;
+  }
+
+  /* Wider screens: sign-off on the left, the two link columns on the right. */
+  @media (min-width: 56em) {
+    .site-footer__inner {
+      grid-template-columns: minmax(0, 1fr) 10rem 10rem;
+      column-gap: var(--space-8);
+    }
+
+    .site-footer__about {
+      grid-column: auto;
+    }
+  }
+
+  .site-footer__name {
+    font-family: var(--font-serif);
+    font-size: var(--text-md);
+    letter-spacing: -0.01em;
+    margin-bottom: var(--space-1);
+  }
+
+  .site-footer__col ul {
+    margin-top: var(--space-3);
     padding: 0;
+    list-style: none;
+    display: grid;
+    gap: var(--space-2);
   }
 
-  .site-footer__links a {
-    color: var(--color-text-muted);
-  }
-
-  .site-footer__links a:hover {
+  .site-footer__col a {
     color: var(--color-text);
+    text-decoration: none;
+  }
+
+  .site-footer__col a:hover {
+    color: var(--color-accent);
+    text-decoration: underline;
+  }
+
+  .site-footer__copy {
+    grid-column: 1 / -1;
+    max-width: none;
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--color-border);
   }
 </style>

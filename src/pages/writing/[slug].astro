@@ -1,9 +1,12 @@
 ---
 /**
- * /writing/<slug>: one essay. Drafts are built only in development.
+ * /writing/<slug>: one essay, set in a centered reading column.
+ * Drafts are built only in development.
  */
 import { render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
+import Prose from '../../components/Prose.astro';
+import Text from '../../components/Text.astro';
 import { getPublishedWriting, formatDate, readingTime } from '../../lib/content';
 
 export async function getStaticPaths() {
@@ -20,21 +23,21 @@ const isoDate = date.toISOString().slice(0, 10);
 <Base title={title} description={summary} type="article">
   <article class="essay">
     <header class="essay__header">
-      <p class="meta">
+      <p class="label">
         <a href="/writing">Writing</a>
-        {' · '}
+        {' / '}
         <time datetime={isoDate}>{formatDate(date)}</time>
-        {' · '}
+        {' / '}
         {readingTime(essay.body)}
-        {draft && <strong> · Draft</strong>}
+        {draft && ' / Draft'}
       </p>
       <h1>{title}</h1>
-      <p class="essay__summary">{summary}</p>
+      <p class="lede"><Text value={summary} /></p>
     </header>
 
-    <div class="prose prose--essay">
+    <Prose class="prose--essay">
       <Content />
-    </div>
+    </Prose>
 
     <footer class="essay__footer">
       <ul class="tags" aria-label="Topics">
@@ -51,7 +54,9 @@ const isoDate = date.toISOString().slice(0, 10);
       {
         linkedinUrl && (
           <p>
-            <a href={linkedinUrl}>Also on LinkedIn</a>, where the conversation happens.
+            <a class="arrow-link" href={linkedinUrl}>
+              Also on LinkedIn
+            </a>
           </p>
         )
       }
@@ -60,27 +65,36 @@ const isoDate = date.toISOString().slice(0, 10);
 </Base>
 
 <style>
+  /* A single reading column in the middle of the page. */
   .essay {
     max-width: var(--content-width);
+    margin-inline: auto;
   }
 
   .essay__header {
-    margin-bottom: var(--space-6);
+    margin-bottom: var(--space-7);
+    padding-bottom: var(--space-6);
+    border-bottom: 1px solid var(--color-border);
   }
 
   .essay__header h1 {
-    margin-top: var(--space-3);
+    margin-top: var(--space-4);
+    font-size: var(--text-xl);
+    line-height: 1.1;
   }
 
-  .essay__summary {
+  .essay__header .lede {
     margin-top: var(--space-4);
-    font-size: var(--text-md);
     color: var(--color-text-muted);
-    text-wrap: pretty;
   }
 
   .essay__footer {
-    margin-top: var(--space-7);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-4);
+    margin-top: var(--space-8);
     padding-top: var(--space-5);
     border-top: 1px solid var(--color-border);
   }
@@ -89,8 +103,5 @@ const isoDate = date.toISOString().slice(0, 10);
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-3);
-    padding: 0;
-    margin-bottom: var(--space-4);
-    list-style: none;
   }
 </style>

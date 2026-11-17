@@ -1,122 +1,297 @@
 ---
 /**
  * Home page: who Lawrence is in under a minute, what he is focused on,
- * three featured projects and the latest essays.
+ * featured projects, the latest essays, a few photographs and a way in.
  */
 import { getEntry, render } from 'astro:content';
+import { Image } from 'astro:assets';
 import Base from '../layouts/Base.astro';
-import ProjectCard from '../components/ProjectCard.astro';
+import Section from '../components/Section.astro';
+import ProjectList from '../components/ProjectList.astro';
+import Prose from '../components/Prose.astro';
 import WritingList from '../components/WritingList.astro';
+import Text from '../components/Text.astro';
 import { site } from '../site';
-import { getProjects, getPublishedWriting, formatDate } from '../lib/content';
+import { getProjects, getPublishedWriting, getPhotoSeries, formatDate } from '../lib/content';
 
 // TODO(Lawrence): approve or rewrite the identity line and the short story.
-const identityLine =
-  'Economics and photography student at the University of Arizona. I build institutions that help people grow, and I’m learning how to make them last.';
+// The identity line is shown in two parts: a large statement and a smaller line under it.
+const identityStatement =
+  'I build institutions that help people grow, and I’m learning how to make them last.';
+const identityKicker = 'Economics and photography student at the University of Arizona.';
 
 const story = [
   'I’m a first-generation student who grew up between China and the United States. I arrived in Arizona closed off, and learned to lead by starting conversations first and joining everything I could.',
-  'Since then I’ve helped build a student association, co-founded a startup, and joined a global community of young leaders.',
-  'Now I’m asking a bigger question: how do we build organizations that help people see the systems they live in?',
+  'Since then I’ve helped build a student association, co-founded a startup, and joined a global community of young leaders. Now I’m asking a bigger question: how do we build organizations that help people see the systems they live in?',
 ];
+
+const contactLine =
+  'I’d like to hear from you if you’re working on how institutions shape people, or how people can reshape institutions.';
 
 const featured = (await getProjects()).filter((p) => p.data.featured).slice(0, 3);
 const essays = (await getPublishedWriting()).slice(0, 3);
 
-// "Currently" is pulled from the same Markdown file that powers /now.
+// "Now" is pulled from the same Markdown file that powers /now.
 const now = await getEntry('pages', 'now');
 const { Content: NowContent } = now ? await render(now) : { Content: null };
+
+// Photographs: the first series supplies the wide photo under the statement
+// and the small row further down the page.
+const series = (await getPhotoSeries())[0];
+const heroPhoto = series?.data.photos[0];
+const morePhotos = series?.data.photos.slice(1, 4) ?? [];
 ---
 
 <Base>
-  <section class="hero prose-width">
-    <h1>{site.name}</h1>
-    <p class="hero__identity">{identityLine}</p>
+  <section class="hero">
+    <h1 class="label">{site.name}</h1>
+    <p class="hero__statement">{identityStatement}</p>
+    <p class="lede hero__kicker">{identityKicker}</p>
   </section>
 
-  <section class="story prose-width" aria-labelledby="story-heading">
-    <h2 id="story-heading" class="visually-hidden">About me</h2>
-    {story.map((paragraph) => <p>{paragraph}</p>)}
-    <p><a href="/about">More about me</a></p>
-  </section>
+  {
+    series && heroPhoto && (
+      <figure class="hero-photo">
+        <a href={`/photography/${series.id}`} aria-label={`View the series ${series.data.title}`}>
+          <Image
+            src={heroPhoto.src}
+            alt={heroPhoto.alt}
+            widths={[640, 1024, 1600, 2400]}
+            sizes="(min-width: 80rem) 74rem, 100vw"
+            format="webp"
+            loading="eager"
+            fetchpriority="high"
+          />
+        </a>
+        <figcaption class="meta">
+          From the series <a href={`/photography/${series.id}`}>{series.data.title}</a>,{' '}
+          {series.data.year}
+        </figcaption>
+      </figure>
+    )
+  }
+
+  <Section label="About" id="about">
+    <div class="story">
+      {story.map((paragraph) => <p>{paragraph}</p>)}
+    </div>
+    <p class="more"><a class="arrow-link" href="/about">More about me</a></p>
+  </Section>
 
   {
     now && NowContent && (
-      <section class="now prose-width" aria-labelledby="now-heading">
-        <h2 id="now-heading">Currently</h2>
-        <p class="meta">Updated {formatDate(now.data.updated)}</p>
-        <div class="now__body">
-          <NowContent />
-        </div>
-        <p>
-          <a href="/now">What I’m doing now</a>
+      <Section label="Now" id="now">
+        <p slot="aside" class="meta">
+          Updated {formatDate(now.data.updated)}
         </p>
-      </section>
+        <div class="now">
+          <Prose bare>
+            <NowContent />
+          </Prose>
+        </div>
+        <p class="more">
+          <a class="arrow-link" href="/now">
+            What I’m doing now
+          </a>
+        </p>
+      </Section>
     )
   }
 
-  <section class="featured" aria-labelledby="featured-heading">
-    <h2 id="featured-heading">Selected work</h2>
-    <div class="card-grid">
-      {featured.map((project) => <ProjectCard project={project} />)}
-    </div>
-    <p><a href="/work">All work</a></p>
-  </section>
+  <Section label="Selected work" id="work">
+    <ProjectList projects={featured} />
+    <p class="more"><a class="arrow-link" href="/work">All work</a></p>
+  </Section>
 
   {
     essays.length > 0 && (
-      <section class="latest-writing" aria-labelledby="writing-heading">
-        <h2 id="writing-heading">Writing</h2>
+      <Section label="Writing" id="writing">
         <WritingList essays={essays} />
-        <p>
-          <a href="/writing">All writing</a>
+        <p class="more">
+          <a class="arrow-link" href="/writing">
+            All writing
+          </a>
         </p>
-      </section>
+      </Section>
     )
   }
+
+  {
+    series && morePhotos.length > 0 && (
+      <Section label="Photography" id="photography">
+        <ul class="photo-row" style={`--count: ${morePhotos.length}`}>
+          {morePhotos.map((photo) => (
+            <li>
+              <a
+                href={`/photography/${series.id}`}
+                aria-label={`View the series ${series.data.title}`}
+              >
+                <Image
+                  src={photo.src}
+                  alt={photo.alt}
+                  widths={[400, 800, 1200]}
+                  sizes="(min-width: 56em) 30rem, 50vw"
+                  format="webp"
+                  loading="lazy"
+                />
+              </a>
+            </li>
+          ))}
+        </ul>
+        <p class="more">
+          <a class="arrow-link" href="/photography">
+            All photography
+          </a>
+        </p>
+      </Section>
+    )
+  }
+
+  <Section label="Contact" id="contact">
+    <p class="contact-line"><Text value={contactLine} /></p>
+    <p class="more"><a class="arrow-link" href="/contact">Get in touch</a></p>
+  </Section>
 </Base>
 
 <style>
-  section + section {
-    margin-top: var(--space-8);
-  }
-
-  h2 {
-    margin-bottom: var(--space-4);
-  }
-
-  .hero__identity {
-    margin-top: var(--space-4);
+  /* --- Hero ----------------------------------------------------------- */
+  .hero__statement {
+    margin-top: var(--space-5);
+    max-width: 17em;
     font-family: var(--font-serif);
-    font-size: var(--text-lg);
-    line-height: 1.4;
-    text-wrap: pretty;
+    font-size: var(--text-display);
+    font-weight: 300;
+    line-height: 1.04;
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+  }
+
+  .hero__kicker {
+    margin-top: var(--space-6);
+    color: var(--color-text-muted);
+  }
+
+  .hero-photo {
+    margin-top: var(--space-section);
+  }
+
+  .hero-photo a {
+    display: block;
+    overflow: hidden;
+    border-radius: var(--radius);
+  }
+
+  .hero-photo img {
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    object-fit: cover;
+    transition: transform 600ms var(--ease);
+  }
+
+  /* A wide, cinematic crop on larger screens. */
+  @media (min-width: 48em) {
+    .hero-photo img {
+      aspect-ratio: 21 / 9;
+    }
+  }
+
+  .hero-photo a:hover img {
+    transform: scale(1.015);
+  }
+
+  .hero-photo figcaption {
+    margin-top: var(--space-3);
+    text-align: right;
+  }
+
+  .hero-photo figcaption a {
+    display: inline;
+    color: inherit;
+  }
+
+  /* --- Sections ------------------------------------------------------- */
+  .more {
+    margin-top: var(--space-6);
+  }
+
+  .story {
+    font-family: var(--font-serif);
+    font-size: var(--text-md);
+    line-height: 1.5;
+  }
+
+  .story p {
+    max-width: 36em;
   }
 
   .story p + p {
     margin-top: var(--space-4);
   }
 
-  .now__body {
-    margin-block: var(--space-3) var(--space-4);
+  /* The "now" list: plain lines separated by hairlines instead of bullets. */
+  .now :global(ul) {
+    padding: 0;
+    list-style: none;
   }
 
-  .now__body :global(ul) {
-    padding-left: 1.2em;
+  .now :global(li) {
+    max-width: none;
+    padding-block: var(--space-3);
+    border-bottom: 1px solid var(--color-border);
+    font-family: var(--font-serif);
+    font-size: var(--text-md);
+    line-height: var(--leading-snug);
   }
 
-  .now__body :global(li + li) {
-    margin-top: var(--space-1);
+  .now :global(li:first-child) {
+    padding-top: 0;
   }
 
-  .now__body :global(ul + p) {
-    margin-top: var(--space-3);
+  .now :global(ul + p) {
+    margin-top: var(--space-4);
   }
 
-  .card-grid {
+  .photo-row {
     display: grid;
-    gap: var(--space-4);
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
-    margin-bottom: var(--space-4);
+    gap: var(--space-3);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* Wider screens: one column per photo (--count is set on the list). */
+  @media (min-width: 56em) {
+    .photo-row {
+      grid-template-columns: repeat(var(--count, 3), minmax(0, 1fr));
+    }
+  }
+
+  .photo-row li {
+    max-width: none;
+  }
+
+  .photo-row a {
+    display: block;
+    overflow: hidden;
+    border-radius: var(--radius);
+  }
+
+  .photo-row img {
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    object-fit: cover;
+    transition: transform 600ms var(--ease);
+  }
+
+  .photo-row a:hover img {
+    transform: scale(1.03);
+  }
+
+  .contact-line {
+    max-width: 22em;
+    font-family: var(--font-serif);
+    font-size: var(--text-xl);
+    font-weight: 350;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
   }
 </style>

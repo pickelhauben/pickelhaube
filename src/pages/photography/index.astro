@@ -4,38 +4,42 @@
  */
 import { Image } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
+import PageHeader from '../../components/PageHeader.astro';
 import { getPhotoSeries } from '../../lib/content';
 
 const series = await getPhotoSeries();
 ---
 
 <Base title="Photography" description="Photo series by Lawrence Zhang.">
-  <header class="page-header">
-    <h1>Photography</h1>
-    <p>Series, each with a short statement. Click any photo to view it large.</p>
-  </header>
+  <PageHeader
+    title="Photography"
+    lede="Series, each with a short statement. Open one, then click any photo to view it large."
+  />
 
   <ul class="series-grid">
     {
-      series.map((s) => {
+      series.map((s, index) => {
         const cover = s.data.photos[0];
         return (
           <li class="series-card">
             <a href={`/photography/${s.id}`}>
               {cover && (
-                <Image
-                  src={cover.src}
-                  alt={cover.alt}
-                  width={900}
-                  widths={[450, 900, 1350]}
-                  sizes="(min-width: 60em) 36rem, 100vw"
-                  format="webp"
-                  loading="lazy"
-                />
+                <span class="series-card__frame">
+                  <Image
+                    src={cover.src}
+                    alt={cover.alt}
+                    widths={[480, 900, 1350, 1800]}
+                    sizes="(min-width: 56em) 38rem, 100vw"
+                    format="webp"
+                    loading={index < 2 ? 'eager' : 'lazy'}
+                  />
+                </span>
               )}
-              <span class="series-card__title">{s.data.title}</span>
-              <span class="meta">
-                {s.data.year} · {s.data.photos.length} photos
+              <span class="series-card__text">
+                <span class="series-card__title">{s.data.title}</span>
+                <span class="meta">
+                  {s.data.year} · {s.data.photos.length} photos
+                </span>
               </span>
             </a>
           </li>
@@ -48,31 +52,56 @@ const series = await getPhotoSeries();
 <style>
   .series-grid {
     display: grid;
-    gap: var(--space-6) var(--space-4);
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
-    padding: 0;
-    list-style: none;
+    gap: var(--space-7) var(--space-5);
+  }
+
+  @media (min-width: 56em) {
+    .series-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .series-card {
+    max-width: none;
   }
 
   .series-card a {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
+    display: block;
     color: var(--color-text);
     text-decoration: none;
+  }
+
+  /* The frame clips the photo so it can grow slightly on hover. */
+  .series-card__frame {
+    display: block;
+    overflow: hidden;
+    border-radius: var(--radius);
   }
 
   .series-card img {
     width: 100%;
     aspect-ratio: 3 / 2;
     object-fit: cover;
-    border-radius: var(--radius);
+    transition: transform 600ms var(--ease);
+  }
+
+  .series-card a:hover img {
+    transform: scale(1.02);
+  }
+
+  .series-card__text {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-4);
+    margin-top: var(--space-3);
   }
 
   .series-card__title {
-    margin-top: var(--space-1);
     font-family: var(--font-serif);
-    font-size: var(--text-md);
+    font-size: var(--text-lg);
+    letter-spacing: -0.01em;
+    transition: color var(--duration) var(--ease);
   }
 
   .series-card a:hover .series-card__title {

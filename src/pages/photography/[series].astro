@@ -6,6 +6,7 @@
 import { Picture, getImage } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
 import Lightbox from '../../components/Lightbox.astro';
+import PageHeader from '../../components/PageHeader.astro';
 import { getPhotoSeries } from '../../lib/content';
 
 export async function getStaticPaths() {
@@ -31,11 +32,13 @@ const ogImage = cover
 ---
 
 <Base title={title} description={statement} image={ogImage}>
-  <header class="series-header prose-width">
-    <p class="meta"><a href="/photography">Photography</a> · {year}</p>
-    <h1>{title}</h1>
-    <p class="series-header__statement">{statement}</p>
-  </header>
+  <PageHeader
+    title={title}
+    label="Photography"
+    labelHref="/photography"
+    labelDetail={year}
+    lede={statement}
+  />
 
   <ol class="photos" data-lightbox-gallery>
     {
@@ -68,20 +71,6 @@ const ogImage = cover
 </Base>
 
 <style>
-  .series-header {
-    margin-bottom: var(--space-7);
-  }
-
-  .series-header h1 {
-    margin-top: var(--space-3);
-  }
-
-  .series-header__statement {
-    margin-top: var(--space-4);
-    font-family: var(--font-serif);
-    font-size: var(--text-md);
-  }
-
   /* Full-bleed: break out of the page container to the edges of the screen. */
   .photos {
     width: 100vw;
@@ -90,7 +79,7 @@ const ogImage = cover
     list-style: none;
     display: flex;
     flex-direction: column;
-    gap: var(--space-7);
+    gap: clamp(1.5rem, 1rem + 3vw, 4rem);
   }
 
   .photo {

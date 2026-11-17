@@ -1,9 +1,10 @@
 ---
 /**
- * /work: every project as a card, sorted by `order`, with tag filters.
+ * /work: every project as a row in an index, sorted by `order`, with tag filters.
  */
 import Base from '../../layouts/Base.astro';
-import ProjectCard from '../../components/ProjectCard.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import ProjectList from '../../components/ProjectList.astro';
 import TagFilter from '../../components/TagFilter.astro';
 import { getProjects } from '../../lib/content';
 
@@ -17,22 +18,8 @@ const tags = [...new Set(projects.flatMap((p) => p.data.tags))];
   title="Work"
   description="Projects and roles: what Lawrence Zhang has built, not just titles held."
 >
-  <header class="page-header">
-    <h1>Work</h1>
-    <p>Things I have built or helped build, and what came of them.</p>
-  </header>
+  <PageHeader title="Work" lede="Things I have built or helped build, and what came of them." />
 
-  <TagFilter tags={tags} target="#work-grid" attribute="data-tags" label="Filter by tag" />
-
-  <div id="work-grid" class="card-grid">
-    {projects.map((project) => <ProjectCard project={project} headingLevel="h2" />)}
-  </div>
+  <TagFilter tags={tags} target="#work-list" attribute="data-tags" label="Filter by tag" />
+  <ProjectList projects={projects} headingLevel="h2" id="work-list" />
 </Base>
-
-<style>
-  .card-grid {
-    display: grid;
-    gap: var(--space-4);
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
-  }
-</style>

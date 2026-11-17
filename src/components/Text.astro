@@ -1,0 +1,16 @@
+---
+/**
+ * Prints a string, wrapping any [[TODO: ...]] placeholder in a styled note.
+ * Use it for text that comes from frontmatter (summaries, statements);
+ * Markdown bodies get the same treatment from the Prose component.
+ */
+import { splitTodo } from '../lib/todo';
+
+interface Props {
+  value: string;
+}
+
+const { value } = Astro.props;
+---
+
+{splitTodo(value).map((part) => (part.todo ? <span class="todo">{part.text}</span> : part.text))}

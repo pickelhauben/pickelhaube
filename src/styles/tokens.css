@@ -6,22 +6,27 @@
 */
 
 :root {
-  /* Type */
+  /* Type families */
   --font-serif: 'Source Serif 4', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
   --font-sans:
     'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
 
-  /* Type scale (rem). Body is 1.125rem = 18px on a 16px root. */
-  --text-xs: 0.8125rem;
+  /*
+    Type scale. The larger sizes are "fluid": clamp(min, preferred, max)
+    grows with the width of the screen between a phone and a desktop.
+  */
+  --text-xs: 0.75rem;
   --text-sm: 0.9375rem;
-  --text-base: 1.125rem;
-  --text-md: 1.25rem;
-  --text-lg: 1.5rem;
-  --text-xl: 2rem;
-  --text-2xl: 2.75rem;
+  --text-base: 1.125rem; /* 18px body text */
+  --text-md: clamp(1.25rem, 1.15rem + 0.4vw, 1.4375rem);
+  --text-lg: clamp(1.5rem, 1.3rem + 0.8vw, 1.875rem);
+  --text-xl: clamp(2rem, 1.5rem + 2vw, 3rem);
+  --text-2xl: clamp(2.5rem, 1.4rem + 4.6vw, 4.75rem); /* page titles */
+  --text-display: clamp(2.375rem, 1.1rem + 5.4vw, 5.25rem); /* home statement */
   --leading-body: 1.6;
-  --leading-tight: 1.15;
+  --leading-snug: 1.3;
+  --leading-tight: 1.08;
   --measure: 65ch; /* ideal line length for reading */
 
   /* Spacing scale (rem) */
@@ -34,23 +39,30 @@
   --space-7: 3rem;
   --space-8: 4rem;
   --space-9: 6rem;
+  --space-section: clamp(3rem, 2rem + 4vw, 5.5rem); /* gap between page sections */
 
   /* Layout */
   --content-width: 42rem; /* reading column */
-  --wide-width: 72rem; /* grids of cards and photos */
-  --gutter: 1rem; /* side padding on small screens */
-  --radius: 4px;
+  --wide-width: 80rem; /* outer page width */
+  --gutter: clamp(1.25rem, 0.5rem + 3.2vw, 3rem); /* side padding */
+  --rail: 15rem; /* width of the label column beside each section */
+  --radius: 3px;
 
-  /* Light theme colors (default) */
-  --color-bg: #fbfaf8;
-  --color-bg-raised: #ffffff;
-  --color-text: #1c1b19;
-  --color-text-muted: #5f5c56;
-  --color-border: #e3e0da;
-  --color-accent: #9a4a1e; /* warm rust, the one accent on the site */
-  --color-accent-hover: #7d3b16;
+  /* Motion */
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --duration: 180ms;
+
+  /* Light theme colors (default): warm paper, near-black ink, one rust accent */
+  --color-bg: #f7f5f0;
+  --color-bg-raised: #fffdf9;
+  --color-text: #1a1917;
+  --color-text-muted: #625e57;
+  --color-border: #dedad1;
+  --color-border-strong: #b9b3a7;
+  --color-accent: #96461b;
+  --color-accent-hover: #753412;
   --color-focus: #2563eb;
-  --color-selection: #f3e2d4;
+  --color-selection: #f0dccb;
 
   color-scheme: light;
 }
@@ -58,11 +70,12 @@
 /* Dark theme when the system prefers it and no manual choice overrides it. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --color-bg: #161513;
-    --color-bg-raised: #1f1e1b;
-    --color-text: #ebe8e2;
+    --color-bg: #141311;
+    --color-bg-raised: #1c1b18;
+    --color-text: #ece9e3;
     --color-text-muted: #a8a399;
-    --color-border: #33312c;
+    --color-border: #2f2d28;
+    --color-border-strong: #4d4a43;
     --color-accent: #e08a5a;
     --color-accent-hover: #f0a87e;
     --color-focus: #7cb0ff;
@@ -73,22 +86,15 @@
 
 /* Dark theme chosen manually with the toggle. */
 :root[data-theme='dark'] {
-  --color-bg: #161513;
-  --color-bg-raised: #1f1e1b;
-  --color-text: #ebe8e2;
+  --color-bg: #141311;
+  --color-bg-raised: #1c1b18;
+  --color-text: #ece9e3;
   --color-text-muted: #a8a399;
-  --color-border: #33312c;
+  --color-border: #2f2d28;
+  --color-border-strong: #4d4a43;
   --color-accent: #e08a5a;
   --color-accent-hover: #f0a87e;
   --color-focus: #7cb0ff;
   --color-selection: #4a3022;
   color-scheme: dark;
-}
-
-@media (min-width: 40em) {
-  :root {
-    --gutter: 1.5rem;
-    --text-base: 1.1875rem; /* 19px on larger screens */
-    --text-2xl: 3.25rem;
-  }
 }

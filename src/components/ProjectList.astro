@@ -1,0 +1,124 @@
+---
+/**
+ * Projects as an index: one row per project with dates, title, role and a
+ * one-sentence summary. Used on the home page and on /work.
+ */
+import type { CollectionEntry } from 'astro:content';
+import Text from './Text.astro';
+import { dateRange } from '../lib/content';
+
+interface Props {
+  projects: CollectionEntry<'projects'>[];
+  /** Heading level for each title, so the page's heading outline stays in order. */
+  headingLevel?: 'h2' | 'h3';
+  /** Optional id, so a TagFilter can find this list. */
+  id?: string;
+}
+
+const { projects, headingLevel = 'h3', id } = Astro.props;
+const Heading = headingLevel;
+---
+
+<ul class="index" id={id}>
+  {
+    projects.map(({ id: slug, data }) => (
+      <li class="index__row" data-tags={data.tags.join(' ')}>
+        <p class="index__date meta">{dateRange(data.start, data.end)}</p>
+        <div class="index__main">
+          <Heading class="index__title">
+            <a href={`/work/${slug}`}>{data.title}</a>
+          </Heading>
+          <p class="meta">
+            {data.role} · {data.org}
+          </p>
+        </div>
+        <p class="index__summary">
+          <Text value={data.summary} />
+        </p>
+        <span class="index__arrow" aria-hidden="true">
+          →
+        </span>
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .index__row {
+    position: relative; /* the title link stretches over the whole row */
+    display: grid;
+    gap: var(--space-2) var(--space-5);
+    padding-block: var(--space-5);
+    border-bottom: 1px solid var(--color-border);
+    max-width: none;
+    transition: border-color var(--duration) var(--ease);
+  }
+
+  .index {
+    border-top: 1px solid var(--color-border);
+  }
+
+  /* Rows hidden by the tag filter. */
+  .index__row[hidden] {
+    display: none;
+  }
+
+  /* Wider screens: date | title and role | summary | arrow, on one line. */
+  @media (min-width: 48em) {
+    .index__row {
+      grid-template-columns: 5.5rem minmax(0, 6fr) minmax(0, 5fr) 1.5rem;
+      align-items: baseline;
+    }
+  }
+
+  .index__title {
+    font-size: var(--text-lg);
+    line-height: 1.2;
+    margin-bottom: var(--space-1);
+  }
+
+  .index__title a {
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  /* Make the whole row clickable. */
+  .index__title a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  .index__summary {
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+  }
+
+  .index__arrow {
+    display: none;
+    color: var(--color-text-muted);
+    transition:
+      transform var(--duration) var(--ease),
+      color var(--duration) var(--ease);
+  }
+
+  @media (min-width: 48em) {
+    .index__arrow {
+      display: block;
+      justify-self: end;
+    }
+  }
+
+  .index__row:hover {
+    border-bottom-color: var(--color-text);
+  }
+
+  .index__row:hover .index__title a {
+    color: var(--color-accent);
+  }
+
+  .index__row:hover .index__arrow {
+    color: var(--color-accent);
+    transform: translateX(0.25em);
+  }
+</style>

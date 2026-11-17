@@ -1,119 +1,225 @@
 ---
 /**
- * /work/<slug>: one project. The header comes from frontmatter, the
- * sections below it from the Markdown body.
+ * /work/<slug>: one project. The header and the facts beside the text come
+ * from frontmatter; the sections come from the Markdown body.
  */
 import { render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import Prose from '../../components/Prose.astro';
 import { getProjects, dateRange } from '../../lib/content';
 
 // Tell Astro which pages to build: one per project file.
+// Each page also receives its neighbours, for the previous/next links.
 export async function getStaticPaths() {
   const projects = await getProjects();
-  return projects.map((project) => ({ params: { slug: project.id }, props: { project } }));
+  return projects.map((project, index) => ({
+    params: { slug: project.id },
+    props: {
+      project,
+      previous: projects[index - 1],
+      next: projects[index + 1],
+    },
+  }));
 }
 
-const { project } = Astro.props;
+const { project, previous, next } = Astro.props;
 const { title, role, org, start, end, summary, outcomes, tags } = project.data;
 const { Content } = await render(project);
 ---
 
 <Base title={title} description={summary}>
   <article>
-    <header class="project-header prose-width">
-      <p class="meta">
-        <a href="/work">Work</a> · {dateRange(start, end)}
-      </p>
-      <h1>{title}</h1>
-      <p class="project-header__role">{role}, {org}</p>
-      <p class="project-header__summary">{summary}</p>
-      {
-        outcomes.length > 0 && (
-          <section class="outcomes" aria-labelledby="outcomes-heading">
-            <h2 id="outcomes-heading" class="meta">
-              Outcomes
-            </h2>
-            <ul>
-              {outcomes.map((outcome) => (
-                <li>{outcome}</li>
-              ))}
-            </ul>
-          </section>
-        )
-      }
-      <ul class="tags" aria-label="Tags">
-        {
-          tags.map((tag) => (
-            <li>
-              <a class="meta" href={`/work#${encodeURIComponent(tag)}`}>
-                {tag}
-              </a>
-            </li>
-          ))
-        }
-      </ul>
-    </header>
+    <PageHeader title={title} label="Work" labelHref="/work" lede={summary} />
 
-    <div class="prose">
-      <Content />
+    <div class="rail">
+      <!-- The facts: who, where, when. -->
+      <aside class="facts" aria-label="Project details">
+        <dl>
+          <div>
+            <dt class="label">Role</dt>
+            <dd>{role}</dd>
+          </div>
+          <div>
+            <dt class="label">Organization</dt>
+            <dd>{org}</dd>
+          </div>
+          <div>
+            <dt class="label">Dates</dt>
+            <dd>{dateRange(start, end)}</dd>
+          </div>
+          <div>
+            <dt class="label">Tags</dt>
+            <dd>
+              <ul class="tags">
+                {
+                  tags.map((tag) => (
+                    <li>
+                      <a href={`/work#${encodeURIComponent(tag)}`}>{tag}</a>
+                    </li>
+                  ))
+                }
+              </ul>
+            </dd>
+          </div>
+        </dl>
+      </aside>
+
+      <div class="project-body">
+        {
+          outcomes.length > 0 && (
+            <section class="outcomes" aria-labelledby="outcomes-heading">
+              <h2 id="outcomes-heading" class="label">
+                Outcomes
+              </h2>
+              <ul>
+                {outcomes.map((outcome) => (
+                  <li>{outcome}</li>
+                ))}
+              </ul>
+            </section>
+          )
+        }
+
+        <Prose>
+          <Content />
+        </Prose>
+      </div>
     </div>
   </article>
+
+  <nav class="pager" aria-label="More projects">
+    {
+      previous ? (
+        <a class="pager__link" href={`/work/${previous.id}`}>
+          <span class="label">Previous</span>
+          <span class="pager__title">{previous.data.title}</span>
+        </a>
+      ) : (
+        <span />
+      )
+    }
+    {
+      next && (
+        <a class="pager__link pager__link--next" href={`/work/${next.id}`}>
+          <span class="label">Next</span>
+          <span class="pager__title">{next.data.title}</span>
+        </a>
+      )
+    }
+  </nav>
 </Base>
 
 <style>
-  .project-header {
-    padding-bottom: var(--space-6);
-    margin-bottom: var(--space-6);
-    border-bottom: 1px solid var(--color-border);
+  .rail {
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--color-border);
   }
 
-  .project-header h1 {
-    margin-top: var(--space-3);
-    font-size: var(--text-xl);
+  /* --- Facts column --------------------------------------------------- */
+  .facts dl {
+    display: grid;
+    gap: var(--space-4);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    font-size: var(--text-sm);
   }
 
-  .project-header__role {
-    margin-top: var(--space-3);
-    color: var(--color-text-muted);
+  .facts dd {
+    margin-top: var(--space-1);
   }
 
-  .project-header__summary {
-    margin-top: var(--space-4);
-    font-family: var(--font-serif);
-    font-size: var(--text-md);
-  }
+  /* Wider screens: one fact per line, and the column stays in view. */
+  @media (min-width: 56em) {
+    .facts {
+      position: sticky;
+      top: var(--space-5);
+      align-self: start;
+    }
 
-  .outcomes {
-    margin-top: var(--space-5);
-    padding: var(--space-4) var(--space-5);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius);
-    background: var(--color-bg-raised);
-  }
-
-  .outcomes h2 {
-    font-family: var(--font-sans);
-    font-weight: 600;
-    font-size: var(--text-xs);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    margin-bottom: var(--space-2);
-  }
-
-  .outcomes ul {
-    padding-left: 1.2em;
-  }
-
-  .outcomes li + li {
-    margin-top: var(--space-2);
+    .facts dl {
+      grid-template-columns: 1fr;
+      gap: var(--space-5);
+    }
   }
 
   .tags {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-3);
-    margin-top: var(--space-4);
+    gap: var(--space-1) var(--space-3);
+  }
+
+  .tags a {
+    color: var(--color-text);
+  }
+
+  .tags a:hover {
+    color: var(--color-accent);
+  }
+
+  /* --- Body ------------------------------------------------------------ */
+  .project-body {
+    min-width: 0;
+    margin-top: var(--space-5);
+  }
+
+  @media (min-width: 56em) {
+    .project-body {
+      margin-top: 0;
+    }
+  }
+
+  .outcomes {
+    max-width: var(--content-width);
+    margin-bottom: var(--space-7);
+  }
+
+  .outcomes ul {
+    margin-top: var(--space-3);
     padding: 0;
     list-style: none;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .outcomes li {
+    max-width: none;
+    padding-block: var(--space-3);
+    border-bottom: 1px solid var(--color-border);
+    font-family: var(--font-serif);
+    font-size: var(--text-md);
+    line-height: var(--leading-snug);
+  }
+
+  /* --- Previous / next ------------------------------------------------- */
+  .pager {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-5);
+    margin-top: var(--space-section);
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .pager__link {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  .pager__link--next {
+    text-align: right;
+    align-items: flex-end;
+  }
+
+  .pager__title {
+    font-family: var(--font-serif);
+    font-size: var(--text-md);
+    line-height: var(--leading-snug);
+    transition: color var(--duration) var(--ease);
+  }
+
+  .pager__link:hover .pager__title {
+    color: var(--color-accent);
   }
 </style>

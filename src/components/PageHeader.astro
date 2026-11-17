@@ -1,0 +1,61 @@
+---
+/**
+ * The top of an inner page: a small breadcrumb-style label, a large title,
+ * and an optional introduction. Extra content (dates, tags) can go in the
+ * default slot and appears under the introduction.
+ */
+import Text from './Text.astro';
+
+interface Props {
+  title: string;
+  /** Small text above the title, e.g. "Work". */
+  label?: string;
+  /** Link for the label, e.g. "/work". */
+  labelHref?: string;
+  /** Extra text after the label, e.g. a date range. */
+  labelDetail?: string;
+  /** One or two sentences under the title. */
+  lede?: string;
+}
+
+const { title, label, labelHref, labelDetail, lede } = Astro.props;
+---
+
+<header class="page-header">
+  {
+    label && (
+      <p class="label">
+        {labelHref ? <a href={labelHref}>{label}</a> : label}
+        {labelDetail && <span class="page-header__detail"> / {labelDetail}</span>}
+      </p>
+    )
+  }
+  <h1><Text value={title} /></h1>
+  {
+    lede && (
+      <p class="lede">
+        <Text value={lede} />
+      </p>
+    )
+  }
+  <slot />
+</header>
+
+<style>
+  .page-header {
+    margin-bottom: var(--space-section);
+  }
+
+  .page-header h1 {
+    max-width: 16em;
+  }
+
+  .page-header .label {
+    margin-bottom: var(--space-4);
+  }
+
+  .page-header .lede {
+    margin-top: var(--space-5);
+    color: var(--color-text-muted);
+  }
+</style>

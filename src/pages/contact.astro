@@ -3,6 +3,9 @@
  * /contact: email (visible, copyable, with a mailto link) and LinkedIn.
  */
 import Base from '../layouts/Base.astro';
+import PageHeader from '../components/PageHeader.astro';
+import Section from '../components/Section.astro';
+import Text from '../components/Text.astro';
 import { site, hasEmail } from '../site';
 ---
 
@@ -10,36 +13,33 @@ import { site, hasEmail } from '../site';
   title="Contact"
   description="How to reach Lawrence Zhang, and what he would like to connect about."
 >
-  <header class="page-header prose-width">
-    <h1>Contact</h1>
-    <p>
-      I’d like to hear from you if you’re working on how institutions shape people, or how people
-      can reshape institutions.
-    </p>
-  </header>
+  <PageHeader
+    title="Contact"
+    lede="I’d like to hear from you if you’re working on how institutions shape people, or how people can reshape institutions."
+  />
 
-  <section class="prose-width" aria-labelledby="email-heading">
-    <h2 id="email-heading">Email</h2>
+  <Section label="Email" id="email">
     <p class="email">
       <!-- The address is plain text so it can be selected and copied by hand. -->
-      <span id="email-address" class="email__address">{site.email}</span>
+      <span id="email-address" class="email__address"><Text value={site.email} /></span>
       {
         hasEmail && (
           <>
             <button type="button" class="email__copy" data-copy-target="email-address">
               Copy
             </button>
-            <a href={`mailto:${site.email}`}>Open in mail app</a>
+            <a class="arrow-link" href={`mailto:${site.email}`}>
+              Open in mail app
+            </a>
           </>
         )
       }
     </p>
     <!-- Announces "Copied" to screen readers without moving focus. -->
     <p id="copy-status" class="meta" role="status" aria-live="polite"></p>
-  </section>
+  </Section>
 
-  <section class="prose-width" aria-labelledby="elsewhere-heading">
-    <h2 id="elsewhere-heading">Elsewhere</h2>
+  <Section label="Elsewhere" id="elsewhere">
     <ul class="elsewhere">
       <li>
         {
@@ -48,7 +48,9 @@ import { site, hasEmail } from '../site';
               LinkedIn
             </a>
           ) : (
-            'LinkedIn [[TODO: profile URL]]'
+            <>
+              LinkedIn <Text value="[[TODO: profile URL]]" />
+            </>
           )
         }
       </li>
@@ -59,12 +61,14 @@ import { site, hasEmail } from '../site';
               GitHub
             </a>
           ) : (
-            'GitHub [[TODO: profile URL]]'
+            <>
+              GitHub <Text value="[[TODO: profile URL]]" />
+            </>
           )
         }
       </li>
     </ul>
-  </section>
+  </Section>
 </Base>
 
 <script>
@@ -94,40 +98,44 @@ import { site, hasEmail } from '../site';
 </script>
 
 <style>
-  section + section {
-    margin-top: var(--space-7);
-  }
-
-  h2 {
-    font-size: var(--text-lg);
-    margin-bottom: var(--space-3);
-  }
-
   .email {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: var(--space-3) var(--space-4);
+    gap: var(--space-3) var(--space-5);
+    max-width: none;
   }
 
   .email__address {
     font-family: var(--font-serif);
-    font-size: var(--text-md);
+    font-size: var(--text-xl);
+    letter-spacing: -0.02em;
+    line-height: 1.15;
     overflow-wrap: anywhere;
     user-select: all; /* one click selects the whole address */
   }
 
+  /* A placeholder address should stay small, not headline-sized. */
+  .email__address :global(.todo) {
+    font-size: var(--text-sm);
+    letter-spacing: 0;
+  }
+
   .email__copy {
     padding: var(--space-1) var(--space-3);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius);
-    background: var(--color-bg-raised);
+    border: 1px solid var(--color-border-strong);
+    border-radius: 999px;
+    background: transparent;
     font-size: var(--text-sm);
     cursor: pointer;
+    transition:
+      border-color var(--duration) var(--ease),
+      color var(--duration) var(--ease);
   }
 
   .email__copy:hover {
-    border-color: var(--color-text-muted);
+    border-color: var(--color-accent);
+    color: var(--color-accent);
   }
 
   #copy-status {
@@ -136,6 +144,9 @@ import { site, hasEmail } from '../site';
   }
 
   .elsewhere {
-    padding-left: 1.2em;
+    display: grid;
+    gap: var(--space-2);
+    font-family: var(--font-serif);
+    font-size: var(--text-md);
   }
 </style>

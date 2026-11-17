@@ -1,69 +1,125 @@
 ---
 /**
- * A list of essays with date and summary, used on the home page and /writing.
+ * Essays as an index: date, title and summary on each row.
+ * Used on the home page and on /writing.
  */
 import type { CollectionEntry } from 'astro:content';
+import Text from './Text.astro';
 import { formatDate } from '../lib/content';
 
 interface Props {
   essays: CollectionEntry<'writing'>[];
   /** Heading level for each title, so the page's heading outline stays in order. */
   headingLevel?: 'h2' | 'h3';
+  /** Optional id, so a TagFilter can find this list. */
+  id?: string;
 }
 
-const { essays, headingLevel = 'h3' } = Astro.props;
+const { essays, headingLevel = 'h3', id } = Astro.props;
 const Heading = headingLevel;
 ---
 
-<ul class="writing-list">
+<ul class="index" id={id}>
   {
     essays.map((essay) => (
-      <li class="writing-list__item" data-topics={essay.data.topics.join(' ')}>
+      <li class="index__row" data-topics={essay.data.topics.join(' ')}>
         <time class="meta" datetime={essay.data.date.toISOString().slice(0, 10)}>
           {formatDate(essay.data.date)}
         </time>
-        <Heading class="writing-list__title">
-          <a href={`/writing/${essay.id}`}>
-            {essay.data.title}
-            {essay.data.draft && <span class="meta"> (draft)</span>}
-          </a>
-        </Heading>
-        <p class="writing-list__summary">{essay.data.summary}</p>
+        <div class="index__main">
+          <Heading class="index__title">
+            <a href={`/writing/${essay.id}`}>
+              {essay.data.title}
+              {essay.data.draft && <span class="meta"> (draft)</span>}
+            </a>
+          </Heading>
+          <p class="index__summary">
+            <Text value={essay.data.summary} />
+          </p>
+        </div>
+        <span class="index__arrow" aria-hidden="true">
+          →
+        </span>
       </li>
     ))
   }
 </ul>
 
 <style>
-  .writing-list {
-    list-style: none;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-5);
+  .index__row {
+    position: relative; /* the title link stretches over the whole row */
+    display: grid;
+    gap: var(--space-2) var(--space-5);
+    padding-block: var(--space-5);
+    border-bottom: 1px solid var(--color-border);
+    max-width: none;
+    transition: border-color var(--duration) var(--ease);
   }
 
-  .writing-list__item {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-1);
-    max-width: var(--content-width);
+  .index {
+    border-top: 1px solid var(--color-border);
   }
 
-  .writing-list__title {
-    font-size: var(--text-md);
+  /* Rows hidden by the topic filter. */
+  .index__row[hidden] {
+    display: none;
   }
 
-  .writing-list__title a {
+  /* Wider screens: date | title and summary | arrow. */
+  @media (min-width: 48em) {
+    .index__row {
+      grid-template-columns: 7.5rem minmax(0, 1fr) 1.5rem;
+      align-items: baseline;
+    }
+  }
+
+  .index__title {
+    font-size: var(--text-lg);
+    line-height: 1.2;
+    margin-bottom: var(--space-2);
+  }
+
+  .index__title a {
     color: var(--color-text);
     text-decoration: none;
   }
 
-  .writing-list__title a:hover {
+  /* Make the whole row clickable. */
+  .index__title a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  .index__summary {
+    color: var(--color-text-muted);
+  }
+
+  .index__arrow {
+    display: none;
+    color: var(--color-text-muted);
+    transition:
+      transform var(--duration) var(--ease),
+      color var(--duration) var(--ease);
+  }
+
+  @media (min-width: 48em) {
+    .index__arrow {
+      display: block;
+      justify-self: end;
+    }
+  }
+
+  .index__row:hover {
+    border-bottom-color: var(--color-text);
+  }
+
+  .index__row:hover .index__title a {
     color: var(--color-accent);
   }
 
-  .writing-list__summary {
-    color: var(--color-text-muted);
+  .index__row:hover .index__arrow {
+    color: var(--color-accent);
+    transform: translateX(0.25em);
   }
 </style>

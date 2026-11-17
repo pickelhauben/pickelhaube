@@ -7,7 +7,6 @@ import sitemap from '@astrojs/sitemap';
 // TODO(Lawrence): replace with the real domain once it is chosen.
 export default defineConfig({
   site: 'https://lawrence-zhang-site.vercel.app',
-  // Trailing slashes are stripped so every page has exactly one canonical URL.
   // Every page has exactly one canonical URL, without a trailing slash.
   // (vercel.json sets `trailingSlash: false` so the host agrees.)
   trailingSlash: 'never',
